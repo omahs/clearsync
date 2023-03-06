@@ -1,19 +1,14 @@
 import 'dotenv/config';
 
+import '@openzeppelin/hardhat-upgrades';
 import '@nomicfoundation/hardhat-toolbox';
 import '@nomiclabs/hardhat-ethers';
-import '@openzeppelin/hardhat-upgrades';
-import type { HardhatUserConfig } from 'hardhat/config';
 import 'solidity-docgen';
+import type { HardhatUserConfig } from 'hardhat/config';
 
-import './src/tasks/accounts';
-import './src/tasks/activate';
-
-const accounts = {
-  mnemonic:
-    process.env.SIGNER_MNEMONIC ??
-    'clown border solid resource camp medal angle success achieve impulse beach inherit busy track hazard',
-};
+const ACCOUNTS = process.env.PRIVATE_KEY === undefined ? [] : [process.env.PRIVATE_KEY];
+const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY ?? '';
+const POLYGONSCAN_API_KEY = process.env.POLYGONSCAN_API_KEY ?? '';
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -21,32 +16,39 @@ const config: HardhatUserConfig = {
       {
         version: '0.8.18',
         settings: {
-          viaIR: true,
           optimizer: {
             enabled: true,
-            details: {
-              yulDetails: {
-                optimizerSteps: 'u',
-              },
-            },
+            runs: 200,
           },
+          viaIR: true,
         },
       },
     ],
   },
   networks: {
-    hardhat: {
-      accounts: {
-        count: 10,
-      },
+    ethereum: {
+      url: process.env.ETHEREUM_URL ?? '',
+      accounts: ACCOUNTS,
     },
-    mumbai: {
-      url: 'https://wandering-aged-tree.matic-testnet.quiknode.pro/a1e69e9f8661279922044553d45860b09aa4765e/',
-      accounts,
+    goerli: {
+      url: process.env.GOERLI_URL ?? '',
+      accounts: ACCOUNTS,
     },
     polygon: {
-      url: 'https://frequent-icy-feather.matic.quiknode.pro/d2a51d3b849ba555c8f56e4ded259f70d9ae724e/',
-      accounts,
+      url: process.env.POLYGON_URL ?? '',
+      accounts: ACCOUNTS,
+    },
+    mumbai: {
+      url: process.env.MUMBAI_URL ?? '',
+      accounts: ACCOUNTS,
+    },
+    generic: {
+      url: process.env.GENERIC_URL ?? '',
+      chainId: Number.parseInt(process.env.GENERIC_CHAIN_ID ?? '0'),
+      gasPrice: process.env.GENERIC_GAS_PRICE
+        ? Number.parseInt(process.env.GENERIC_GAS_PRICE)
+        : 'auto',
+      accounts: ACCOUNTS,
     },
   },
   docgen: {
@@ -59,7 +61,10 @@ const config: HardhatUserConfig = {
   },
   etherscan: {
     apiKey: {
-      polygon: process.env.POLYGONSCAN_API_KEY,
+      mainnet: ETHERSCAN_API_KEY,
+      goerli: ETHERSCAN_API_KEY,
+      polygon: POLYGONSCAN_API_KEY,
+      polygonMumbai: POLYGONSCAN_API_KEY,
     },
   },
 };
